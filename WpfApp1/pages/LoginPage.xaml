@@ -1,0 +1,25 @@
+﻿<Page x:Class="WpfApp1.pages.LoginPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Авторизация" Height="450" Width="800">
+    <Grid Background="#F3F3F3">
+        <StackPanel Width="300" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Вход в систему" FontSize="22" FontWeight="Bold" Margin="0,0,0,20" TextAlignment="Center"/>
+            
+            <TextBlock Text="Логин:" Margin="0,0,0,5"/>
+            <TextBox x:Name="TxtLogin" Height="30" Margin="0,0,0,10"/>
+            
+            <TextBlock Text="Пароль:" Margin="0,0,0,5"/>
+            <PasswordBox x:Name="PassBox" Height="30" Margin="0,0,0,20"/>
+            
+            <!-- Блок капчи (скрыт по умолчанию) -->
+            <StackPanel x:Name="BlockCaptcha" Visibility="Collapsed" Margin="0,0,0,15">
+                <TextBlock x:Name="TxtCaptcha" FontSize="16" FontWeight="Bold" Foreground="Red" TextDecorations="Strikethrough" TextAlignment="Center" Margin="0,0,0,5"/>
+                <TextBox x:Name="TxtInputCaptcha" Height="30"/>
+            </StackPanel>
+
+            <Button Content="Войти" x:Name="BtnLogin" Click="BtnLogin_Click" Height="35" Background="#0198AF" Foreground="White" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Button Content="Регистрация" x:Name="BtnRegister" Click="BtnRegister_Click" Height="30"/>
+        </StackPanel>
+    </Grid>
+</Page>

@@ -1,0 +1,38 @@
+﻿<Page x:Class="WpfApp1.pages.ChartPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Аналитика контента" Height="450" Width="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Аналитика: Распределение контента по типам (Видео / Аудио / Подкаст)" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <!-- Область визуализации столбчатой диаграммы -->
+        <Border Grid.Row="1" BorderBrush="#CCCCCC" BorderThickness="1" Background="#FAFAFA" Padding="15">
+            <ItemsControl x:Name="IcChart">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="20,0" VerticalAlignment="Bottom" Width="100">
+                            <TextBlock Text="{Binding Count}" FontSize="14" FontWeight="Bold" TextAlignment="Center" Margin="0,0,0,5"/>
+                            <!-- Столбец графика (высота рассчитывается динамически) -->
+                            <Rectangle Fill="#0198AF" Height="{Binding BarHeight}" Width="60" RadiusX="4" RadiusY="4"/>
+                            <TextBlock Text="{Binding TypeName}" FontSize="12" TextAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <!-- Кнопка возврата -->
+        <Button Grid.Row="2" Content="Назад" Width="100" Height="30" HorizontalAlignment="Left" Margin="0,15,0,0" Click="BtnBack_Click"/>
+    </Grid>
+</Page>
