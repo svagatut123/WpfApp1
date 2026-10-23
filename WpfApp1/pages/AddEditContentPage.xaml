@@ -20,7 +20,7 @@
             <TextBox x:Name="TxtGenre" Height="28" Margin="0,0,0,10"/>
 
             <TextBlock Text="Длительность (минут):" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtDuration" Height="28" Margin="0,0,0,10"/>
+            <TextBox x:Name="TxtDuration" Height="28" PreviewTextInput="NumberValidationTextBox" MaxLength="4"/>
 
             <TextBlock Text="Год выпуска:" Margin="0,0,0,3"/>
             <TextBox x:Name="TxtYear" Height="28" Margin="0,0,0,10"/>

@@ -1,6 +1,8 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace WpfApp1.pages
 {
@@ -74,7 +76,11 @@ namespace WpfApp1.pages
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
         private string TTxtGenreText() => TxtGenre.Text.Trim();
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e) => Manager.MainFrame.GoBack();

@@ -1,0 +1,34 @@
+﻿CREATE DATABASE StreamingDB;
+GO
+
+USE StreamingDB;
+GO
+
+CREATE TABLE Roles (
+    RoleID INT IDENTITY(1,1) PRIMARY KEY,
+    RoleName NVARCHAR(50) NOT NULL
+);
+GO
+
+CREATE TABLE Users (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    Login NVARCHAR(50) NOT NULL UNIQUE,
+    Password NVARCHAR(100) NOT NULL,
+    FullName NVARCHAR(100) NOT NULL,
+    RoleID INT NOT NULL,
+    CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleID) 
+        REFERENCES Roles(RoleID) 
+        ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE Content (
+    ContentID INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(150) NOT NULL,
+    ContentType NVARCHAR(50) NOT NULL,
+    Genre NVARCHAR(50) NOT NULL,
+    DurationMinutes INT NOT NULL,
+    ReleaseYear INT NOT NULL,
+    Description NVARCHAR(MAX)
+);
+GO
