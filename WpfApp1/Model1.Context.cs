@@ -13,10 +13,10 @@ namespace WpfApp1
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class StreamingDBEntities : DbContext
+    public partial class StreamingDBEntities1 : DbContext
     {
-        public StreamingDBEntities()
-            : base("name=StreamingDBEntities")
+        public StreamingDBEntities1()
+            : base("name=StreamingDBEntities1")
         {
         }
     
@@ -27,6 +27,7 @@ namespace WpfApp1
     
         public virtual DbSet<Content> Content { get; set; }
         public virtual DbSet<Roles> Roles { get; set; }
+        public virtual DbSet<sysdiagrams> sysdiagrams { get; set; }
         public virtual DbSet<Users> Users { get; set; }
     }
 }

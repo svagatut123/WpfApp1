@@ -40,7 +40,6 @@ namespace WpfApp1.pages
                 failedAttempts = 0;
                 BlockCaptcha.Visibility = Visibility.Collapsed;
 
-                // СОХРАНЯЕМ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ ГЛОБАЛЬНО
                 Core.LoggedUser = user;
 
                 MessageBox.Show($"Добро пожаловать, {user.FullName}!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -67,6 +66,10 @@ namespace WpfApp1.pages
                     GenerateCaptcha();
                 }
             }
+        }
+        private void BtnTheme_Click(object sender, RoutedEventArgs e)
+        {
+            AppTheme.ToggleTheme();
         }
 
         private void GenerateCaptcha()

@@ -21,6 +21,7 @@
 
             <Button Content="Войти" x:Name="BtnLogin" Click="BtnLogin_Click" Height="35" Background="#0198AF" Foreground="White" FontWeight="Bold" Margin="0,0,0,10"/>
             <Button Content="Регистрация" x:Name="BtnRegister" Click="BtnRegister_Click" Height="30"/>
+            <Button Content="Смена темы" Width="100" Height="30" Click="BtnTheme_Click" Margin="0,20,20,0"/>
         </StackPanel>
     </Grid>
 </Page>

@@ -4,9 +4,10 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="dc130131b9844d25a23cd9ecdf67eb4b" Name="Diagram1">
+      <Diagram DiagramId="f53761c453a0467092cadc8bffb552e4" Name="Diagram1">
         <EntityTypeShape EntityType="StreamingDBModel.Content" Width="1.5" PointX="0.75" PointY="4.75" IsExpanded="true" />
         <EntityTypeShape EntityType="StreamingDBModel.Roles" Width="1.5" PointX="0.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="StreamingDBModel.sysdiagrams" Width="1.5" PointX="2.75" PointY="4.75" IsExpanded="true" />
         <EntityTypeShape EntityType="StreamingDBModel.Users" Width="1.5" PointX="3" PointY="0.875" IsExpanded="true" />
         <AssociationConnector Association="StreamingDBModel.FK__Users__RoleID__4D94879B" ManuallyRouted="false" />
       </Diagram>

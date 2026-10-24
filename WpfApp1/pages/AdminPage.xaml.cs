@@ -2,9 +2,14 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+
+// Подключение сторонних библиотек для генерации отчетов
+using OfficeOpenXml;             // NuGet: EPPlus
+using Xceed.Words.NET;           // NuGet: DocX
+using iTextSharp.text;           // NuGet: iTextSharp
+using iTextSharp.text.pdf;       // NuGet: iTextSharp
 
 namespace WpfApp1.pages
 {
@@ -16,13 +21,14 @@ namespace WpfApp1.pages
             LoadData();
         }
 
+        // Загрузка, фильтрация, поиск и сортировка данных
         private void LoadData()
         {
             if (DataGridContent == null) return;
 
             var query = Core.Context.Content.AsQueryable();
-
             string search = TxtSearch.Text.Trim().ToLower();
+
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(x => x.Title.ToLower().Contains(search) || x.Genre.ToLower().Contains(search));
@@ -39,6 +45,7 @@ namespace WpfApp1.pages
         }
 
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e) => LoadData();
+
         private void ComboSort_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadData();
 
         private void BtnAdd_Click(object sender, RoutedEventArgs e)
@@ -56,6 +63,15 @@ namespace WpfApp1.pages
             }
             Manager.MainFrame.Navigate(new AddEditContentPage(selected));
         }
+        private void BtnUsers_Click(object sender, RoutedEventArgs e)
+        {
+            Manager.MainFrame.Navigate(new UsersManagementPage());
+        }
+        private void BtnTheme_Click(object sender, RoutedEventArgs e)
+        {
+            AppTheme.ToggleTheme();
+        }
+
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
@@ -66,8 +82,7 @@ namespace WpfApp1.pages
                 return;
             }
 
-            if (MessageBox.Show($"Вы действительно хотите удалить выбранные записи ({selectedList.Count} шт.)?",
-                "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Вы действительно хотите удалить выбранные записи ({selectedList.Count} шт.)?", "Подтверждение удаления", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 try
                 {
@@ -93,18 +108,13 @@ namespace WpfApp1.pages
             Manager.MainFrame.Navigate(new ChangePasswordPage(Core.LoggedUser));
         }
 
-        // ==========================================
-        // ЛОГИКА ЭКСПОРТА ОТЧЕТОВ (.xlsx, .docx, .pdf)
-        // ==========================================
 
-        // ==========================================
-        // 1. ЭКСПОРТ В EXCEL ЧЕРЕЗ CSV (открывается в Excel без ошибок и без библиотек)
-        // ==========================================
+        // 1. Экспорт в Excel 
         private void BtnExportXlsx_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog
             {
-                Filter = "CSV файл (для Excel) (*.csv)|*.csv",
+                Filter = "Книга Excel (*.xlsx)|*.xlsx",
                 FileName = $"Отчет_Контент_{DateTime.Now:yyyyMMdd}"
             };
 
@@ -113,41 +123,60 @@ namespace WpfApp1.pages
                 try
                 {
                     var items = Core.Context.Content.ToList();
-                    StringBuilder sb = new StringBuilder();
 
-                    // Используем точку с запятой (;) — это стандарт разделителя для русского Excel
-                    sb.AppendLine("ID;Название;Тип;Жанр;Длительность (мин);Год выпуска;Описание");
-
-                    foreach (var item in items)
+                    using (ExcelPackage package = new ExcelPackage())
                     {
-                        // Экранируем кавычки в тексте, если они есть
-                        string title = item.Title?.Replace("\"", "\"\"") ?? "";
-                        string genre = item.Genre?.Replace("\"", "\"\"") ?? "";
-                        string desc = item.Description?.Replace("\"", "\"\"") ?? "";
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Каталог контента");
 
-                        sb.AppendLine($"{item.ContentID};\"{title}\";\"{item.ContentType}\";\"{genre}\";{item.DurationMinutes};{item.ReleaseYear};\"{desc}\"");
+                        worksheet.Cells["A1"].Value = "ID";
+                        worksheet.Cells["B1"].Value = "Название";
+                        worksheet.Cells["C1"].Value = "Тип";
+                        worksheet.Cells["D1"].Value = "Жанр";
+                        worksheet.Cells["E1"].Value = "Длительность (мин)";
+                        worksheet.Cells["F1"].Value = "Год выпуска";
+                        worksheet.Cells["G1"].Value = "Описание";
+
+                        using (var range = worksheet.Cells["A1:G1"])
+                        {
+                            range.Style.Font.Bold = true;
+                        }
+
+                        int row = 2;
+                        foreach (var item in items)
+                        {
+                            worksheet.Cells[row, 1].Value = item.ContentID;
+                            worksheet.Cells[row, 2].Value = item.Title;
+                            worksheet.Cells[row, 3].Value = item.ContentType;
+                            worksheet.Cells[row, 4].Value = item.Genre;
+                            worksheet.Cells[row, 5].Value = item.DurationMinutes;
+                            worksheet.Cells[row, 6].Value = item.ReleaseYear;
+                            worksheet.Cells[row, 7].Value = item.Description;
+                            row++;
+                        }
+
+                        worksheet.Cells.AutoFitColumns();
+
+                        FileInfo fileInfo = new FileInfo(sfd.FileName);
+                        package.SaveAs(fileInfo);
                     }
 
-                    // Кодировка UTF-8 с BOM, чтобы русский текст в Excel отображался корректно (без кракозябр)
-                    File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
-
-                    MessageBox.Show("Отчет успешно сохранен! Дважды кликните по файлу, чтобы открыть его в Excel.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Отчет Excel успешно сохранен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Ошибка при экспорте в Excel: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        // ==========================================
-        // 2. ЭКСПОРТ В WORD (.doc / HTML-формат, открывается в Word без сторонних пакетов)
-        // ==========================================
+
+
+        // 2. Экспорт в  Word 
         private void BtnExportDocx_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog
             {
-                Filter = "Документ Word (*.doc)|*.doc",
+                Filter = "Документ Word (*.docx)|*.docx",
                 FileName = $"Отчет_Стриминг_{DateTime.Now:yyyyMMdd}"
             };
 
@@ -156,77 +185,127 @@ namespace WpfApp1.pages
                 try
                 {
                     var items = Core.Context.Content.ToList();
-                    StringBuilder sb = new StringBuilder();
 
-                    // Формат веб-страницы, который Word распознает как полноценный документ со стилями
-                    sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>");
-                    sb.AppendLine("<head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'></head>");
-                    sb.AppendLine("<body style='font-family: Arial, sans-serif;'>");
-                    sb.AppendLine("<h1 style='color: #0198AF; text-align: center;'>ОТЧЕТ ПО МЕДИАКОНТЕНТУ ПЛАТФОРМЫ</h1>");
-                    sb.AppendLine($"<p style='text-align: center;'><b>Дата формирования:</b> {DateTime.Now:dd.MM.yyyy HH:mm}</p><hr/>");
-
-                    foreach (var item in items)
+                    using (DocX doc = DocX.Create(sfd.FileName))
                     {
-                        sb.AppendLine($"<h3 style='margin-bottom: 2px;'>{item.Title} <span style='font-size: 12px; color: gray;'>[{item.ContentType}]</span></h3>");
-                        sb.AppendLine($"<p style='margin-top: 0;'><b>Жанр:</b> {item.Genre} | <b>Длительность:</b> {item.DurationMinutes} мин. | <b>Год:</b> {item.ReleaseYear}</p>");
-                        sb.AppendLine($"<p><i>Описание:</i> {item.Description}</p>");
-                        sb.AppendLine("<hr style='border: 1px dashed #ccc;'/>");
+                        // Заголовок документа
+                        var titleParagraph = doc.InsertParagraph("ОТЧЕТ ПО МЕДИАКОНТЕНТУ ПЛАТФОРМЫ");
+
+                        titleParagraph.Font("Arial").FontSize(18).Bold()
+                            .Color(Xceed.Drawing.Color.DarkCyan)
+                            .Alignment = Xceed.Document.NET.Alignment.center;
+
+                        // Дата составления отчета
+                        var dateParagraph = doc.InsertParagraph($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}");
+                        dateParagraph.Font("Arial").FontSize(11).Italic()
+                            .Alignment = Xceed.Document.NET.Alignment.center;
+                        doc.InsertParagraph().SpacingAfter(15);
+
+                        // Создаем таблицу
+                        Xceed.Document.NET.Table table = doc.AddTable(items.Count + 1, 7);
+                        table.Alignment = Xceed.Document.NET.Alignment.center;
+
+                        // Заполнение шапки через индексаторы коллекций Rows и Cells
+                        var headerRow = table.Rows[0];
+                        headerRow.Cells[0].Paragraphs.First().Append("ID").Bold();
+                        headerRow.Cells[1].Paragraphs.First().Append("Название").Bold();
+                        headerRow.Cells[2].Paragraphs.First().Append("Тип").Bold();
+                        headerRow.Cells[3].Paragraphs.First().Append("Жанр").Bold();
+                        headerRow.Cells[4].Paragraphs.First().Append("Длит.").Bold();
+                        headerRow.Cells[5].Paragraphs.First().Append("Год").Bold();
+                        headerRow.Cells[6].Paragraphs.First().Append("Описание").Bold();
+
+                        // Построчное наполнение таблицы с прямой адресацией по индексам ячеек [0..6]
+                        for (int i = 0; i < items.Count; i++)
+                        {
+                            var item = items[i];
+                            var dataRow = table.Rows[i + 1];
+
+                            dataRow.Cells[0].Paragraphs.First().Append(item.ContentID.ToString());
+                            dataRow.Cells[1].Paragraphs.First().Append(item.Title ?? "");
+                            dataRow.Cells[2].Paragraphs.First().Append(item.ContentType ?? "");
+                            dataRow.Cells[3].Paragraphs.First().Append(item.Genre ?? "");
+                            dataRow.Cells[4].Paragraphs.First().Append($"{item.DurationMinutes} мин.");
+                            dataRow.Cells[5].Paragraphs.First().Append(item.ReleaseYear.ToString());
+                            dataRow.Cells[6].Paragraphs.First().Append(item.Description ?? "");
+                        }
+
+                        doc.InsertTable(table);
+                        doc.Save();
                     }
 
-                    sb.AppendLine("</body>");
-                    sb.AppendLine("</html>");
-
-                    File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
                     MessageBox.Show("Отчет Word успешно сохранен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Ошибка при экспорте в Word: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        // ==========================================
-        // 3. ЭКСПОРТ В PDF / ТЕКСТОВЫЙ ОТЧЕТ (.txt)
-        // ==========================================
+        // 3. Экспорт в PDF
         private void BtnExportPdf_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog
             {
-                Filter = "Текстовый отчет (*.txt)|*.txt",
+                Filter = "Документ PDF (.pdf)|.pdf",
                 FileName = $"Отчет_Контент_{DateTime.Now:yyyyMMdd}"
             };
-
             if (sfd.ShowDialog() == true)
             {
                 try
                 {
                     var items = Core.Context.Content.ToList();
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("==================================================");
-                    sb.AppendLine("       ОТЧЕТ СТРИМИНГОВОЙ ПЛАТФОРМЫ               ");
-                    sb.AppendLine($"       Дата: {DateTime.Now:dd.MM.yyyy HH:mm}");
-                    sb.AppendLine("==================================================\n");
-
+                    // Используем полное имя класса iTextSharp.text.Document, чтобы исключить конфликты
+                    iTextSharp.text.Document doc = new iTextSharp.text.Document(PageSize.A4, 20, 20, 20, 20);
+                    PdfWriter.GetInstance(doc, new FileStream(sfd.FileName, FileMode.Create));
+                    doc.Open();
+                    // Настройка шрифтов для корректного вывода русского текста
+                    string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "Arial.ttf");
+                    BaseFont bfArial = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    iTextSharp.text.Font titleFont = new iTextSharp.text.Font(bfArial, 18, iTextSharp.text.Font.BOLD, new BaseColor(1, 152, 175));
+                    iTextSharp.text.Font regularFont = new iTextSharp.text.Font(bfArial, 9, iTextSharp.text.Font.NORMAL);
+                    iTextSharp.text.Font boldFont = new iTextSharp.text.Font(bfArial, 9, iTextSharp.text.Font.BOLD);
+                    // Главный заголовок
+                    Paragraph pTitle = new Paragraph("ОТЧЕТ СТРИМИНГОВОЙ ПЛАТФОРМЫ", titleFont);
+                    pTitle.Alignment = Element.ALIGN_CENTER;
+                    doc.Add(pTitle);
+                    // Дата формирования
+                    Paragraph pDate = new Paragraph($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}\n\n", regularFont);
+                    pDate.Alignment = Element.ALIGN_CENTER;
+                    doc.Add(pDate);
+                    // Сетка таблицы PDF на 7 колонок
+                    PdfPTable table = new PdfPTable(7);
+                    table.WidthPercentage = 100;
+                    float[] widths = new float[] { 5f, 20f, 10f, 12f, 8f, 7f, 38f };
+                    table.SetWidths(widths);
+                    table.AddCell(new PdfPCell(new Phrase("ID", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Название", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Тип", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Жанр", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Длит.", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Год", boldFont)));
+                    table.AddCell(new PdfPCell(new Phrase("Описание", boldFont)));
                     foreach (var item in items)
                     {
-                        sb.AppendLine($"Название: {item.Title}");
-                        sb.AppendLine($"Тип: {item.ContentType} | Жанр: {item.Genre}");
-                        sb.AppendLine($"Год: {item.ReleaseYear} | Длительность: {item.DurationMinutes} мин.");
-                        sb.AppendLine($"Описание: {item.Description}");
-                        sb.AppendLine("--------------------------------------------------");
+                        table.AddCell(new PdfPCell(new Phrase(item.ContentID.ToString(), regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.Title ?? "", regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.ContentType ?? "", regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.Genre ?? "", regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase($"{item.DurationMinutes} м.", regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.ReleaseYear.ToString(), regularFont)));
+                        table.AddCell(new PdfPCell(new Phrase(item.Description ?? "", regularFont)));
                     }
-
-                    File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
-                    MessageBox.Show("Отчет успешно сохранен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    doc.Add(table);
+                    doc.Close();
+                    MessageBox.Show("Отчет PDF успешно сохранен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Ошибка при экспорте в PDF: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
-
         private void BtnBack_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Вы действительно хотите выйти из системы?", "Выход", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
