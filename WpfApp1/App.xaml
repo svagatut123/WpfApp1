@@ -3,75 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- Фирменная палитра из руководства -->
-        <SolidColorBrush x:Key="PrimaryColor" Color="#0198AF"/>
-        <SolidColorBrush x:Key="SecondaryColor" Color="#233E76"/>
-        <SolidColorBrush x:Key="DangerColor" Color="#DD4B42"/>
-        <SolidColorBrush x:Key="LightBgColor" Color="#F3F3F3"/>
-        <SolidColorBrush x:Key="CardBgColor" Color="#FFFFFF"/>
-
-        <!-- Динамические ресурсы для смены темы -->
-        <SolidColorBrush x:Key="WindowBackground" Color="#F3F3F3"/>
-        <SolidColorBrush x:Key="ContentBackground" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextColor" Color="#233E76"/>
-
-        <!-- Единый шрифт приложения -->
-        <Style TargetType="Control" x:Key="BaseStyle">
-            <Setter Property="FontFamily" Value="Open Sans, Segoe UI, sans-serif"/>
-        </Style>
-
-        <!-- Стиль для всех кнопок (Button) -->
-        <Style TargetType="Button" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Стиль для полей ввода (TextBox / PasswordBox) -->
-        <Style TargetType="TextBox" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="5,0"/>
-            <Setter Property="BorderBrush" Value="#9197A3"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-
-        <Style TargetType="PasswordBox" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="5,0"/>
-            <Setter Property="BorderBrush" Value="#9197A3"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-
-        <!-- Стиль для DataGrid (Таблиц) -->
-        <Style TargetType="DataGrid" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Background" Value="{DynamicResource ContentBackground}"/>
-            <Setter Property="BorderBrush" Value="#EAEBED"/>
-            <Setter Property="RowBackground" Value="{DynamicResource ContentBackground}"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#EAEBED"/>
-        </Style>
-
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="Padding" Value="8,0"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/LightTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
